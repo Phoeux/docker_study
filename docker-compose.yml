@@ -1,0 +1,49 @@
+version: "3"
+
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: django      #bookshop:v1
+    volumes:
+      - ./src:/src              #./bookshop:/bookshop
+    # ports:
+    #   - 8000:8000
+    command: gunicorn -w 2 dockerlesson.wsgi:application -b 0.0.0.0:8000 --reload
+    # environment:
+    #   - POSTGRES_PASSWORD=django_pwd
+    #   - POSTGRES_USER=django_user
+    #   - POSTGRES_DB=django_db
+    env_file:
+      - db_keys.txt
+    depends_on:
+      - db
+
+  db:
+    image: postgres
+    container_name: my_db
+    # environment:
+    #   - POSTGRES_PASSWORD=django_pwd
+    #   - POSTGRES_USER=django_user
+    #   - POSTGRES_DB=django_db
+    env_file:
+      - db_keys.txt
+
+  nginx:
+    image: nginx
+    container_name: nginx
+    ports:
+      - 8000:8000
+    volumes:
+      - ./src:/src
+      - ./config:/etc/nginx/conf.d
+    depends_on:
+      - web
+
+  adminer:
+    image: adminer
+    container_name: adminer
+    ports: 
+      - 8080:8080
